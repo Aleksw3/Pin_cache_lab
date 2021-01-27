@@ -1,0 +1,8 @@
+Cache statistics:
+  Writes: 93958
+  Write Misses: 73995
+  Reads: 128765
+  Read Misses: 92972
+  Misses: 166967
+  Accesses: 222723
+  Miss Ratio: 74.9662%
