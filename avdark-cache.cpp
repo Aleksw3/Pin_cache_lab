@@ -132,14 +132,14 @@ avdc_access(avdark_cache_t *self, avdc_pa_t pa, avdc_access_type_t type)
 
 
         if (!hit) { //If no data in cache
-                if(!self->lines[index].LRU) 
+                if(self->lines[index].LRU == 0) 
                 {// if index 0 is LRU
                         self->lines[index].valid = 1; //Signal that data is valid
                         self->lines[index].tag = tag; //Set tag
                         self->lines[index].LRU = 1;   //Signal that this was just used
                         self->lines[index + cache_line_width].LRU = 0; // Signal that the other way is LRU
                 }
-                else if(!self->lines[index + cache_line * cache_line_width].LRU) 
+                else //if(self->lines[index + cache_line * cache_line_width].LRU == 0) 
                 {// if index 1 is LRU
                         self->lines[index + cache_line_width].valid = 1; //Signal that data is valid
                         self->lines[index + cache_line_width].tag = tag; // Set tag
@@ -149,7 +149,7 @@ avdc_access(avdark_cache_t *self, avdc_pa_t pa, avdc_access_type_t type)
         }
         else
         {
-                if(!cache_line) //If hit on line 0
+                if(cache_line == 0) //If hit on line 0
                 {
                         self->lines[index].LRU = 1; //This line is lastly used
                         self->lines[index + cache_line_width].LRU = 0; // This line is LRU
@@ -184,7 +184,7 @@ void
 avdc_flush_cache(avdark_cache_t *self)
 {
         /* TODO: Update this function */
-        for (int i = 0; i < self->number_of_sets; i++) {
+        for (int i = 0; i < self->number_of_sets * self->assoc; i++) {
                 self->lines[i].valid = 0;
                 self->lines[i].tag = 0;
         }
@@ -211,14 +211,14 @@ avdc_resize(avdark_cache_t *self,
         }
 
         /* Update the stored parameters */
-        self->size = size; //size of cache
+        self->size = size;             //size of cache
         self->block_size = block_size; //byte-block size
-        self->assoc = assoc; //associativity, from cmd input
+        self->assoc = assoc;           //associativity, from cmd input
 
         /* Common cache values */
-        self->number_of_sets = (self->size / self->block_size) / self->assoc; //index bits
-        self->block_size_log2 = log2_int32(self->block_size); //offset bits
-        self->tag_shift = self->block_size_log2 + log2_int32(self->number_of_sets);//bits that are not tag
+        self->number_of_sets = (self->size / self->block_size) / self->assoc;       //index bits
+        self->block_size_log2 = log2_int32(self->block_size);                       //offset bits
+        self->tag_shift = self->block_size_log2 + log2_int32(self->number_of_sets); //bits that are not tag
 
         /* (Re-)Allocate space for the tags array */
         if (self->lines)
@@ -228,7 +228,7 @@ avdc_resize(avdark_cache_t *self,
          * array is allocated. */
 
 
-        self->lines = AVDC_MALLOC(self->number_of_sets * self->assoc , avdc_cache_line_t);
+        self->lines = AVDC_MALLOC(self->number_of_sets*self->assoc, avdc_cache_line_t);
 
         /* Flush the cache, this initializes the tag array to a known state */
         avdc_flush_cache(self);

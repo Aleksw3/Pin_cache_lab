@@ -15,6 +15,7 @@
 #include <assert.h>
 
 #define STAT_ASSERT(c, r, rm, w, wm) do {                       \
+                printf("%d read == %d",c->stat_data_read,r);    \
                 assert(c->stat_data_read == (r));               \
                 assert(c->stat_data_read_miss == (rm));         \
                 assert(c->stat_data_write == (w));              \
