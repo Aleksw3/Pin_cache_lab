@@ -137,13 +137,13 @@ avdc_access(avdark_cache_t *self, avdc_pa_t pa, avdc_access_type_t type)
                         self->lines[index].valid = 1; //Signal that data is valid
                         self->lines[index].tag = tag; //Set tag
                         self->lines[index].LRU = 1;   //Signal that this was just used
-                        self->lines[index + cache_line * cache_line_width].LRU = 0; // Signal that the other way is LRU
+                        self->lines[index + cache_line_width].LRU = 0; // Signal that the other way is LRU
                 }
                 else if(!self->lines[index + cache_line * cache_line_width].LRU) 
                 {// if index 1 is LRU
-                        self->lines[index + cache_line * cache_line_width].valid = 1; //Signal that data is valid
-                        self->lines[index + cache_line * cache_line_width].tag = tag; // Set tag
-                        self->lines[index + cache_line * cache_line_width].LRU = 1;   // Signal that cache line 1 was just used
+                        self->lines[index + cache_line_width].valid = 1; //Signal that data is valid
+                        self->lines[index + cache_line_width].tag = tag; // Set tag
+                        self->lines[index + cache_line_width].LRU = 1;   // Signal that cache line 1 was just used
                         self->lines[index].LRU = 0;                                   //Signal that cache line 0 is LRU
                 }
         }
