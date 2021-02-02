@@ -46,6 +46,7 @@ struct avdc_cache_line {
         int        valid;
         int        LRU;
 };
+#define CACHE_LINE_WIDTH  (64 + 32 + 32)
 
 /**
  * Extract the cache line tag from a physical address.
@@ -123,13 +124,18 @@ avdc_access(avdark_cache_t *self, avdc_pa_t pa, avdc_access_type_t type)
         avdc_tag_t tag = tag_from_pa(self, pa);
         int index = index_from_pa(self, pa);
         unsigned int hit = 0, cache_line; // maybe use way instead of cache_line
-        unsigned int cache_line_width = 64 + 32 + 32; //uint64_t + int + int = tag + valid + LRU
+        // unsigned int CACHE_LINE_WIDTH = 64 + 32 + 32; //uint64_t + int + int = tag + valid + LRU
 
 
-        for(cache_line = 0; cache_line < self->assoc && hit == 0; cache_line++)
-                hit = self->lines[index + cache_line * cache_line_width].valid\
-                && self->lines[index + cache_line * cache_line_width].tag == tag;
+        for(cache_line = 0; cache_line < self->assoc && hit == 0; cache_line++){
+                hit = self->lines[index + cache_line * CACHE_LINE_WIDTH].valid\
+                && self->lines[index + cache_line * CACHE_LINE_WIDTH].tag == tag;
 
+                printf("%d: tag of self == %ld, tag of pa = %ld \n", index, self->lines[index + cache_line * CACHE_LINE_WIDTH].tag, tag);
+                printf("%d: valig of self == %d\n",index, self->lines[index + cache_line * CACHE_LINE_WIDTH].valid);
+        }
+        
+        
 
         if (!hit) { //If no data in cache
                 if(self->lines[index].LRU == 0) 
@@ -137,13 +143,13 @@ avdc_access(avdark_cache_t *self, avdc_pa_t pa, avdc_access_type_t type)
                         self->lines[index].valid = 1; //Signal that data is valid
                         self->lines[index].tag = tag; //Set tag
                         self->lines[index].LRU = 1;   //Signal that this was just used
-                        self->lines[index + cache_line_width].LRU = 0; // Signal that the other way is LRU
+                        self->lines[index + CACHE_LINE_WIDTH].LRU = 0; // Signal that the other way is LRU
                 }
-                else //if(self->lines[index + cache_line * cache_line_width].LRU == 0) 
+                else //if(self->lines[index + cache_line * CACHE_LINE_WIDTH].LRU == 0) 
                 {// if index 1 is LRU
-                        self->lines[index + cache_line_width].valid = 1; //Signal that data is valid
-                        self->lines[index + cache_line_width].tag = tag; // Set tag
-                        self->lines[index + cache_line_width].LRU = 1;   // Signal that cache line 1 was just used
+                        self->lines[index + CACHE_LINE_WIDTH].valid = 1; //Signal that data is valid
+                        self->lines[index + CACHE_LINE_WIDTH].tag = tag; // Set tag
+                        self->lines[index + CACHE_LINE_WIDTH].LRU = 1;   // Signal that cache line 1 was just used
                         self->lines[index].LRU = 0;                                   //Signal that cache line 0 is LRU
                 }
         }
@@ -152,12 +158,12 @@ avdc_access(avdark_cache_t *self, avdc_pa_t pa, avdc_access_type_t type)
                 if(cache_line == 0) //If hit on line 0
                 {
                         self->lines[index].LRU = 1; //This line is lastly used
-                        self->lines[index + cache_line_width].LRU = 0; // This line is LRU
+                        self->lines[index + CACHE_LINE_WIDTH].LRU = 0; // This line is LRU
                 }
                 else //if hit on line 1
                 {
                         self->lines[index].LRU = 0;                 //This line is lastly used         
-                        self->lines[index + cache_line_width].LRU = 1; //This line is LRU
+                        self->lines[index + CACHE_LINE_WIDTH].LRU = 1; //This line is LRU
                 }
         }
 
@@ -184,9 +190,11 @@ void
 avdc_flush_cache(avdark_cache_t *self)
 {
         /* TODO: Update this function */
-        for (int i = 0; i < self->number_of_sets * self->assoc; i++) {
-                self->lines[i].valid = 0;
-                self->lines[i].tag = 0;
+        for (int i = 0; i < self->number_of_sets; i++) {
+                for(int line = 0; line < self->assoc; line++){
+                        self->lines[i].valid = 0;
+                        self->lines[i].tag = 0;
+                }
         }
 }
 
