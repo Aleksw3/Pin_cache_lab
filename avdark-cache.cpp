@@ -125,38 +125,39 @@ avdc_access(avdark_cache_t *self, avdc_pa_t pa, avdc_access_type_t type)
         unsigned int hit = 0, cache_line; // maybe use way instead of cache_line
         unsigned int cache_line_width = 64 + 32 + 32; //uint64_t + int + int = tag + valid + LRU
 
-        for(cache_line = 0; cache_line < self->assoc * cache_line_width  && hit == 0; cache_line += cache_line_width)
-                hit = self->lines[index + cache_line].valid\
-                && self->lines[index + cache_line].tag == tag;
+
+        for(cache_line = 0; cache_line < self->assoc && hit == 0; cache_line++)
+                hit = self->lines[index + cache_line * cache_line_width].valid\
+                && self->lines[index + cache_line * cache_line_width].tag == tag;
 
 
-        if (!hit) {
-                if(!self->lines[index].LRU)
-                {
+        if (!hit) { //If no data in cache
+                if(!self->lines[index].LRU) 
+                {// if index 0 is LRU
                         self->lines[index].valid = 1; //Signal that data is valid
                         self->lines[index].tag = tag; //Set tag
                         self->lines[index].LRU = 1;   //Signal that this was just used
-                        self->lines[index + cache_line_width].LRU = 0; // Signal that the other way is least recently used
+                        self->lines[index + cache_line * cache_line_width].LRU = 0; // Signal that the other way is LRU
                 }
-                else if(!self->lines[index + cache_line_width].LRU)
-                {
-                        self->lines[index + cache_line_width].valid = 1;
-                        self->lines[index + cache_line_width].tag = tag;
-                        self->lines[index + cache_line_width].LRU = 1;
-                        self->lines[index].LRU = 1;
+                else if(!self->lines[index + cache_line * cache_line_width].LRU) 
+                {// if index 1 is LRU
+                        self->lines[index + cache_line * cache_line_width].valid = 1; //Signal that data is valid
+                        self->lines[index + cache_line * cache_line_width].tag = tag; // Set tag
+                        self->lines[index + cache_line * cache_line_width].LRU = 1;   // Signal that cache line 1 was just used
+                        self->lines[index].LRU = 0;                                   //Signal that cache line 0 is LRU
                 }
         }
         else
         {
-                if(!cache_line) //If hit on way 0
+                if(!cache_line) //If hit on line 0
                 {
-                        self->lines[index].LRU = 1;
-                        self->lines[index + cache_line_width].LRU = 0;
+                        self->lines[index].LRU = 1; //This line is lastly used
+                        self->lines[index + cache_line_width].LRU = 0; // This line is LRU
                 }
-                else //if hit on way 1
+                else //if hit on line 1
                 {
-                        self->lines[index].LRU = 0;
-                        self->lines[index + cache_line_width].LRU = 1;
+                        self->lines[index].LRU = 0;                 //This line is lastly used         
+                        self->lines[index + cache_line_width].LRU = 1; //This line is LRU
                 }
         }
 
