@@ -126,16 +126,10 @@ avdc_access(avdark_cache_t *self, avdc_pa_t pa, avdc_access_type_t type)
         unsigned int hit = 0, cache_line; // maybe use way instead of cache_line
         // unsigned int CACHE_LINE_WIDTH = 64 + 32 + 32; //uint64_t + int + int = tag + valid + LRU
 
-
-        for(cache_line = 0; cache_line < self->assoc && hit == 0; cache_line++){
+        for(cache_line = 0; cache_line < self->assoc && hit == 0; cache_line++)
                 hit = self->lines[index + cache_line * CACHE_LINE_WIDTH].valid\
                 && self->lines[index + cache_line * CACHE_LINE_WIDTH].tag == tag;
 
-//               printf("%d: tag of self == %ld, tag of pa = %ld \n", index, self->lines[index + cache_line * CACHE_LINE_WIDTH].tag, tag);
-//               printf("%d: valig of self == %d\n",index, self->lines[index + cache_line * CACHE_LINE_WIDTH].valid);
-        }
-        
-        
 
         if (!hit) { //If no data in cache
                 if(self->lines[index].LRU == 0) 
@@ -172,6 +166,7 @@ avdc_access(avdark_cache_t *self, avdc_pa_t pa, avdc_access_type_t type)
                 avdc_dbg_log(self, "read: pa: 0x%.16lx, tag: 0x%.16lx, index: %d, hit: %d\n",
                              (unsigned long)pa, (unsigned long)tag, index, hit);
                 self->stat_data_read += 1;
+                printf("This was a read, hit: %d\n", hit);
                 if (!hit)
                         self->stat_data_read_miss += 1;
                 break;
@@ -180,6 +175,7 @@ avdc_access(avdark_cache_t *self, avdc_pa_t pa, avdc_access_type_t type)
                 avdc_dbg_log(self, "write: pa: 0x%.16lx, tag: 0x%.16lx, index: %d, hit: %d\n",
                              (unsigned long)pa, (unsigned long)tag, index, hit);
                 self->stat_data_write += 1;
+                printf("This was a write, hit: %d\n", hit);
                 if (!hit)
                         self->stat_data_write_miss += 1;
                 break;
@@ -192,9 +188,9 @@ avdc_flush_cache(avdark_cache_t *self)
         /* TODO: Update this function */
         for (int i = 0; i < self->number_of_sets; i++) {
                 for(unsigned int line = 0; line < self->assoc; line++){
-                        self->lines[i+line*CACHE_LINE_WIDTH].valid = 0;
-                        self->lines[i+line*CACHE_LINE_WIDTH].tag = 0;
-			self->lines[i+line*CACHE_LINE_WIDTH].LRU = 0;
+                        self->lines[i + line*CACHE_LINE_WIDTH].valid = 0;
+                        self->lines[i + line*CACHE_LINE_WIDTH].tag = 0;
+			self->lines[i + line*CACHE_LINE_WIDTH].LRU = 0;
                 }
         }
 }
