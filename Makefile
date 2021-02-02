@@ -28,7 +28,6 @@ test-assoc: test1
 	@echo "* Running tests for associative caches           *"
 	@echo "**************************************************"
 	./test1 > /dev/null
-
 test0: test0.o avdark-cache.o
 test1: test1.o avdark-cache.o
 

@@ -131,8 +131,8 @@ avdc_access(avdark_cache_t *self, avdc_pa_t pa, avdc_access_type_t type)
                 hit = self->lines[index + cache_line * CACHE_LINE_WIDTH].valid\
                 && self->lines[index + cache_line * CACHE_LINE_WIDTH].tag == tag;
 
-                printf("%d: tag of self == %ld, tag of pa = %ld \n", index, self->lines[index + cache_line * CACHE_LINE_WIDTH].tag, tag);
-                printf("%d: valig of self == %d\n",index, self->lines[index + cache_line * CACHE_LINE_WIDTH].valid);
+//               printf("%d: tag of self == %ld, tag of pa = %ld \n", index, self->lines[index + cache_line * CACHE_LINE_WIDTH].tag, tag);
+//               printf("%d: valig of self == %d\n",index, self->lines[index + cache_line * CACHE_LINE_WIDTH].valid);
         }
         
         
@@ -191,9 +191,10 @@ avdc_flush_cache(avdark_cache_t *self)
 {
         /* TODO: Update this function */
         for (int i = 0; i < self->number_of_sets; i++) {
-                for(int line = 0; line < self->assoc; line++){
-                        self->lines[i].valid = 0;
-                        self->lines[i].tag = 0;
+                for(unsigned int line = 0; line < self->assoc; line++){
+                        self->lines[i+line*CACHE_LINE_WIDTH].valid = 0;
+                        self->lines[i+line*CACHE_LINE_WIDTH].tag = 0;
+			self->lines[i+line*CACHE_LINE_WIDTH].LRU = 0;
                 }
         }
 }
